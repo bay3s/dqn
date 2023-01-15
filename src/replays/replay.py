@@ -1,12 +1,10 @@
-from typing import List
-import random
-from collections import namedtuple
+from abc import ABC, abstractmethod
 from collections import deque
 
-Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'))
+from .transition import Transition
 
 
-class ReplayMemory:
+class Replay(ABC):
 
   def __init__(self, capacity: int) -> None:
     """
@@ -14,10 +12,11 @@ class ReplayMemory:
 
     :param capacity: The maximum capacity for the replay memory.
     """
-    self._transitions = deque([], maxlen=capacity)
     self.capacity = capacity
+    self._transitions = deque([], maxlen = self.capacity)
+    pass
 
-  def add_step(self, step: Transition) -> Transition:
+  def push(self, step: Transition) -> Transition:
     """
     Add the results of an episode step to the memory.
 
@@ -41,7 +40,7 @@ class ReplayMemory:
     return self.capacity <= len(self._transitions)
 
   @property
-  def transitions(self) -> List[Transition]:
+  def transitions(self) -> deque:
     """
     Return the list of episode steps in the current memory.
 
@@ -49,12 +48,29 @@ class ReplayMemory:
     """
     return self._transitions
 
-  def sample(self, num_samples: int) -> list:
+  def __len__(self) -> int:
     """
-    Returns the number of samples requested from the replay memory.
+    Returns the number of transitions in the replay memory at the moment.
 
-    :param num_samples:
+    :return: int
+    """
+    return len(self._transitions)
+
+  @abstractmethod
+  def sample(self, replay_size: int):
+    """
+    Sample transitions from the replay memory.
+
+    :param replay_size: Number of transitions to sample from memory.
 
     :return: list
     """
-    return random.sample(self._transitions, num_samples)
+    raise NotImplementedError('Function `sample` not implemented.')
+
+  def truncate(self) -> None:
+    """
+    Reset the replay buffer to its original state.
+
+    :return: None
+    """
+    self._transitions = deque([], maxlen = self.capacity)
