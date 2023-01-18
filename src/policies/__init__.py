@@ -1,3 +1,3 @@
-from .dqn_cart_pole_policy import DQNCartPolePolicy
+from .cart_pole_policy import CartPolePolicy
 
-__all__ = ['DQNCartPolePolicy']
+__all__ = ['CartPolePolicy']

@@ -9,12 +9,12 @@ import gym
 from torch.optim import Adam
 
 from src.agents import DQN
-from src.policies import DQNCartPolePolicy
+from src.policies import CartPolePolicy
 from src.replays import VanillaReplay
 
 
 cart_pole_env = gym.make('CartPole-v1')
-policy = DQNCartPolePolicy(cart_pole_env.observation_space.shape[0], cart_pole_env.action_space.n)
+policy = CartPolePolicy(cart_pole_env.observation_space.shape[0], cart_pole_env.action_space.n)
 replay_memory = VanillaReplay(capacity = 500)
 optimizer = Adam(policy.parameters(), lr = 0.001)
 

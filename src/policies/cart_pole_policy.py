@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class DQNCartPolePolicy(nn.Module):
+class CartPolePolicy(nn.Module):
 
   def __init__(self, observation_space: int = 4, action_space: int = 2) -> None:
     """
