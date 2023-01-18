@@ -1,7 +1,3 @@
-<body style="fontsize=11">
-
-### Deep Q-Learning
-
 **References**
 - Fast Gradient-Descent Methods for TD-Learning with Linear Function Approximation (Sutton et al., 2009)
 - Playing Atari with Deep Reinforcement Learning (Mnih et al., 2013)
@@ -62,5 +58,3 @@ $$Q*(s, a) = max_\pi \mathbb{E}[R_t|s+t=s, a_t=a, \pi]$$
 			- $y_j = r_j$ for terminal $\phi_{j+1}$
 			- $y_j = r_j + \gamma max_{a'}Q(\phi_{j+1}, a' ; \theta)$ for non-terminal $\phi_{j+1}$
 			- perform a gradient descent step on $(y_j - Q(\phi_j, a_j; \theta))^2$
-
-</body>
