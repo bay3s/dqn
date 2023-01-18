@@ -43,14 +43,14 @@ class DoubleDQN(DQNBase):
     q_values_next = self.predict_q_target(next_states)
     q_values_expected = self.predict_q(states)
 
-    # action in the next state is evaluated based on the online policy.
+    # action in the next state is selected based on the online policy.
     actions_next = torch.argmax(self.predict_q(next_states), axis=1)
     actions_next = tuple(actions_next.tolist())
 
     # action values for the next state are based on value computed by target, but action taken by the online policy.
-    actions_values_next = q_values_next[range(len(q_values_expected)), actions_next]
+    action_values_next = q_values_next[range(len(q_values_expected)), actions_next]
 
-    q_values_expected[range(len(q_values_expected)), actions] = rewards + self.discount_rate * actions_values_next
+    q_values_expected[range(len(q_values_expected)), actions] = rewards + self.discount_rate * action_values_next
     q_values_expected[is_final_indices.tolist(), actions_tensor[is_final_indices].tolist()] = rewards[is_final_indices.tolist()]
 
     return self.criterion(self.policy(states), q_values_expected)

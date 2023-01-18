@@ -33,9 +33,6 @@ ddqn = DDQN(
 max_episodes = 500
 mean_rewards = list()
 rewards_last_10 = deque()
-epsilon_values = list()
-
-plt_epsilon = list()
 plt_rewards_mean = list()
 plt_rewards_median = list()
 
@@ -48,7 +45,6 @@ for epi in tqdm(range(max_episodes)):
 
   plt_rewards_mean.append(mean_reward)
   plt_rewards_median.append(median_reward)
-  plt_epsilon.append(ddqn.epsilon)
 
   if len(rewards_last_10) == 10:
     rewards_last_10.popleft()
@@ -62,6 +58,5 @@ for epi in tqdm(range(max_episodes)):
 
 plt.plot(plt_rewards_mean, label = 'Mean Reward / 10 Episodes')
 plt.plot(plt_rewards_median, label = 'Median Reward / 10 Episodes')
-plt.plot(plt_epsilon, label = 'Epsilon')
 plt.legend()
 plt.show()
