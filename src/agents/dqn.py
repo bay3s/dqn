@@ -11,6 +11,16 @@ class DQN(DQNBase):
 
     Based on the original DQN paper "Playing Atari with Deep Reinforcement Learning" (Mnih et al., 2013)
 
+    DQN Bellman Update:
+      >> state = experience_replay.state
+      >> next_state = experience_replay.next_state
+
+      >> state_max_q = argmax(online_network.predict(state))
+      >> next_state_max_q = argmax(target_network.predict(next_state))
+
+      >>expected_q = reward + discount_factor * next_state_max_q
+      >>loss = LossFunction(predicted_q, expected_q)
+
     :return: None
     """
     sampled = self.replay_memory.sample(self.replay_size)

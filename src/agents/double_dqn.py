@@ -11,17 +11,7 @@ class DoubleDQN(DQNBase):
 
     Based on the Double DQN paper "Deep Reinforcement Learning with Double Q-Learning" (Hasselt et al., 2015)
 
-    DQN Bellman Update:
-      >> state = experience_replay.state
-      >> next_state = experience_replay.next_state
-
-      >> state_max_q = argmax(online_network.predict(state))
-      >> next_state_max_q = argmax(target_network.predict(next_state))
-
-      >>expected_q = reward + discount_factor * next_state_max_q
-      >>loss = LossFunction(predicted_q, expected_q)
-
-    DDQN Bellman Update:
+    Double DQN Bellman Update:
       >> state = experience_replay.state
       >> next_state = experience_replay.next_state
 
@@ -49,9 +39,18 @@ class DoubleDQN(DQNBase):
     is_final_tensor = torch.Tensor(is_final)
     is_final_indices = torch.where(is_final_tensor == True)[0]
 
+    # q-values for the next state are predicted based on the target policy.
     q_values_next = self.predict_q_target(next_states)
     q_values_expected = self.predict_q(states)
-    q_values_expected[range(len(q_values_expected)), actions] = rewards + self.discount_rate * torch.max(q_values_next, axis=1).values
+
+    # action in the next state is evaluated based on the online policy.
+    actions_next = torch.argmax(self.predict_q(next_states), axis=1)
+    actions_next = tuple(actions_next.tolist())
+
+    # action values for the next state are based on value computed by target, but action taken by the online policy.
+    actions_values_next = q_values_next[range(len(q_values_expected)), actions_next]
+
+    q_values_expected[range(len(q_values_expected)), actions] = rewards + self.discount_rate * actions_values_next
     q_values_expected[is_final_indices.tolist(), actions_tensor[is_final_indices].tolist()] = rewards[is_final_indices.tolist()]
 
     return self.criterion(self.policy(states), q_values_expected)
