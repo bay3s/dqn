@@ -6,7 +6,7 @@ import gym
 
 from torch.optim import Adam
 
-from src.agents import DQN
+from src.agents import DoubleDQN as DDQN
 from src.policies import CartPolePolicy
 from src.replays import VanillaReplay
 
@@ -16,7 +16,7 @@ policy = CartPolePolicy(cart_pole_env.observation_space.shape[0], cart_pole_env.
 replay_memory = VanillaReplay(capacity = 500)
 optimizer = Adam(policy.parameters(), lr = 0.001)
 
-dqn = DQN(
+ddqn = DDQN(
   env = cart_pole_env,
   policy = policy,
   replay_memory = replay_memory,
@@ -33,14 +33,11 @@ dqn = DQN(
 max_episodes = 500
 mean_rewards = list()
 rewards_last_10 = deque()
-epsilon_values = list()
-
-plt_epsilon = list()
 plt_rewards_mean = list()
 plt_rewards_median = list()
 
 for epi in tqdm(range(max_episodes)):
-  episode_transitions = dqn.play_episode(tune = True)
+  episode_transitions = ddqn.play_episode(tune = True)
   rewards_last_10.append(np.sum(list(zip(*episode_transitions))[2]))
 
   mean_reward = np.mean(rewards_last_10)
@@ -48,7 +45,6 @@ for epi in tqdm(range(max_episodes)):
 
   plt_rewards_mean.append(mean_reward)
   plt_rewards_median.append(median_reward)
-  plt_epsilon.append(dqn.epsilon)
 
   if len(rewards_last_10) == 10:
     rewards_last_10.popleft()
@@ -62,6 +58,5 @@ for epi in tqdm(range(max_episodes)):
 
 plt.plot(plt_rewards_mean, label = 'Mean Reward / 10 Episodes')
 plt.plot(plt_rewards_median, label = 'Median Reward / 10 Episodes')
-plt.plot(plt_epsilon, label = 'Epsilon')
 plt.legend()
 plt.show()
