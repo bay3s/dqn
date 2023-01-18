@@ -7,7 +7,6 @@ from gym import Env
 import torch
 import torch.nn as nn
 from torch.optim import Optimizer
-from torch.autograd import Variable
 
 from src.replays import Replay, Transition
 
@@ -53,7 +52,7 @@ class DQN:
     self.epsilon_decay = epsilon_decay
 
     self.target_update_steps = target_update_steps
-    self._steps_since_update = 0.
+    self.training_steps = 0
     pass
 
   def predict_q(self, state: torch.Tensor) -> torch.Tensor:
@@ -66,6 +65,17 @@ class DQN:
     """
     with torch.no_grad():
       return self.policy(state)
+
+  def predict_q_target(self, state: torch.Tensor) -> torch.Tensor:
+    """
+    Return Q-value predictions made by the target given a particular state as input.
+
+    :param state: State for which to predict the Q-values
+
+    :return: torch.Tensor
+    """
+    with torch.no_grad():
+      return self.target_policy(state)
 
   def select_action(self, state: torch.Tensor) -> int:
     """
@@ -99,14 +109,12 @@ class DQN:
     is_final_tensor = torch.Tensor(is_final)
     is_final_indices = torch.where(is_final_tensor == True)[0]
 
-    q_values_expected = self.policy(states)
-    q_values_next = self.policy(next_states)
-
+    q_values_next = self.predict_q_target(next_states)
+    q_values_expected = self.predict_q(states)
     q_values_expected[range(len(q_values_expected)), actions] = rewards + self.discount_rate * torch.max(q_values_next, axis=1).values
     q_values_expected[is_final_indices.tolist(), actions_tensor[is_final_indices].tolist()] = rewards[is_final_indices.tolist()]
 
-    q_values_predicted = self.policy(states)
-    loss = self.criterion(q_values_predicted, q_values_expected)
+    loss = self.criterion(self.policy(states), q_values_expected)
 
     self.optimizer.zero_grad()
     loss.backward()
@@ -121,9 +129,10 @@ class DQN:
     """
     self.replay_memory.truncate()
     self.epsilon = self.max_epsilon
+    self.training_steps = 0
     pass
 
-  def _update_target(self) -> None:
+  def update_target(self) -> None:
     """
     Update the parameters of the target policy.
 
@@ -134,7 +143,7 @@ class DQN:
     pass
 
   @property
-  def _required_replay_size(self) -> int:
+  def required_replay_size(self) -> int:
     """
     Compute the replay memory size required for sampling in order to assure that samples are roughly iid.
 
@@ -142,14 +151,14 @@ class DQN:
     """
     return min(self.replay_size * self.REQUIRED_REPLAY_FACTOR, self.replay_memory.capacity)
 
-  def _anneal_epsilon(self):
+  def anneal_epsilon(self):
     """
     Anneal the value of epsilon given the epsilon decay rate.
 
     :return: None
     """
-    if self.epsilon > self.min_epsilon:
-      self.epsilon = self.epsilon - self.epsilon_decay
+    self.epsilon = self.epsilon - self.training_steps * self.epsilon_decay
+    pass
 
   def play_episode(self, tune: bool) -> list:
     """
@@ -171,14 +180,22 @@ class DQN:
       self.replay_memory.push(current_transition)
       episode_transitions.append(current_transition)
 
-      if len(self.replay_memory) > self._required_replay_size and tune:
+      if len(self.replay_memory) >= self.required_replay_size and tune:
         self.tune()
+        pass
+
+      if self.training_steps % self.target_update_steps == 0:
+        self.update_target()
+        pass
+
+      if self.epsilon > self.min_epsilon:
+        self.anneal_epsilon()
+      elif self.epsilon < self.min_epsilon:
+        self.epsilon = self.min_epsilon
+        pass
 
       state = next_state
-      self._anneal_epsilon()
-
-      if self._steps_since_update % self.target_update_steps == 0:
-        self._update_target()
+      self.training_steps += 1
       continue
 
     return episode_transitions
