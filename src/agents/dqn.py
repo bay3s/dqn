@@ -13,9 +13,7 @@ from src.replays import Replay, Transition
 
 class DQN:
 
-  REQUIRED_REPLAY_FACTOR = 10
-
-  def __init__(self, env: Env, policy: nn.Module, replay_memory: Replay, replay_size: int,
+  def __init__(self, env: Env, policy: nn.Module, replay_memory: Replay, replay_size: int, min_replay_history: int,
                optimizer: Optimizer, discount_rate: float, max_epsilon: float, min_epsilon: float, epsilon_decay: float,
                target_update_steps: int):
     """
@@ -25,6 +23,7 @@ class DQN:
     :param policy: Neural network to use as the policy.
     :param replay_memory: Replay memory to use.
     :param replay_size: Replay size to use while tuning the agent.
+    :param min_replay_history: Minimum number of transitions in memory before we tune the policy.
     :param optimizer: Optimizer to be used for updating parameters of the policy.
     :param discount_rate: Discount rate to be applied to the rewards collected by the agent.
     :param max_epsilon: Epsilon value to use for epsilon greedy exploration-exploitation.
@@ -42,6 +41,7 @@ class DQN:
 
     self.replay_memory = replay_memory
     self.replay_size = replay_size
+    self.min_replay_history = min_replay_history
 
     self.optimizer = optimizer
     self.discount_rate = discount_rate
@@ -142,15 +142,6 @@ class DQN:
     self.target_policy.train(False)
     pass
 
-  @property
-  def required_replay_size(self) -> int:
-    """
-    Compute the replay memory size required for sampling in order to assure that samples are roughly iid.
-
-    :return: int
-    """
-    return min(self.replay_size * self.REQUIRED_REPLAY_FACTOR, self.replay_memory.capacity)
-
   def anneal_epsilon(self):
     """
     Anneal the value of epsilon given the epsilon decay rate.
@@ -180,7 +171,7 @@ class DQN:
       self.replay_memory.push(current_transition)
       episode_transitions.append(current_transition)
 
-      if len(self.replay_memory) >= self.required_replay_size and tune:
+      if len(self.replay_memory) >= self.min_replay_history and tune:
         self.tune()
         pass
 

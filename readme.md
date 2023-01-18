@@ -3,9 +3,9 @@
 ### Deep Q-Learning
 
 **References**
-- Fast Gradient-Descent Methods for TD-Learning with Linear Function Approximation (Sutton et. al 2009)
-- Playing Atari with Deep Reinforcement Learning (Mnih et. al 2013)
-- Deep RL with Double Q-learning (Hasselt et. al 2015)
+- Fast Gradient-Descent Methods for TD-Learning with Linear Function Approximation (Sutton et al., 2009)
+- Playing Atari with Deep Reinforcement Learning (Mnih et al., 2013)
+- Deep RL with Double Q-learning (Hasselt et al., 2015)
 
 **Overview**
 - DQN is model-free, off-policy, and online.

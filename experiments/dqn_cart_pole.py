@@ -15,7 +15,7 @@ from src.replays import VanillaReplay
 
 cart_pole_env = gym.make('CartPole-v1')
 policy = DQNCartPolePolicy(cart_pole_env.observation_space.shape[0], cart_pole_env.action_space.n)
-replay_memory = VanillaReplay(capacity = 250)
+replay_memory = VanillaReplay(capacity = 500)
 optimizer = Adam(policy.parameters(), lr = 0.001)
 
 dqn = DQN(
@@ -23,12 +23,13 @@ dqn = DQN(
   policy = policy,
   replay_memory = replay_memory,
   replay_size = 32,
+  min_replay_history = 200,
   optimizer = optimizer,
   discount_rate = 0.999,
   max_epsilon = 1.,
   min_epsilon = 0.1,
   epsilon_decay = 1e-3,
-  target_update_steps = 10
+  target_update_steps = 10,
 )
 
 max_episodes = 500
